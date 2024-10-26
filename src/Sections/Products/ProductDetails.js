@@ -15,14 +15,16 @@ export default function ProductDetails() {
   const Products = useSelector((state) => state.products.items);
 
   const { id } = useParams();
-  const prodIndex = Products.findIndex((product) => product.id == id);
+  console.log(id);
+  const prodIndex = Products.findIndex((product) => product.id === Number(id));
+  console.log(prodIndex);
 
   useEffect(() => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
 
   useEffect(() => {
-    if (prodIndex !== -1) {
+    if (Products.length > 0 && prodIndex !== -1) {
       const currentProductCategory = Products[prodIndex]?.category?.name;
       const filteredRelatedProducts = Products?.filter(
         (product) =>
@@ -153,9 +155,6 @@ export default function ProductDetails() {
                   className="bg-orange-400 font-semibold text-sm text-white px-7 py-2 rounded-xl hover:bg-orange-500 hover:scale-95"
                 >
                   ADD TO CART
-                </button>
-                <button className="bg-orange-400 font-semibold text-sm text-white px-7 py-2 rounded-xl hover:bg-orange-500 hover:scale-95">
-                  BUY NOW
                 </button>
               </div>
             </div>
