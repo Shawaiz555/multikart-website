@@ -1,14 +1,28 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { removeFromCart, updateItemQuantity } from "../../store/CartDetails/CartDetailSlice";
+import {
+  removeFromCart,
+  updateItemQuantity,
+  checkout,
+} from "../../store/CartDetails/CartDetailSlice";
 
 export default function CartDetail() {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
-  const totalPrice = cartItems.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
+  const totalPrice = cartItems.reduce(
+    (total, item) => total + item.quantity * item.unitPrice,
+    0
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [checkoutMessage, setCheckoutMessage] = useState("");
+
+  // States for user and bank info
+  const [userInfo, setUserInfo] = useState({ name: "", email: "" });
+  const [bankInfo, setBankInfo] = useState({
+    bankName: "",
+    accountNumber: "",
+    ifscCode: "",
+  });
 
   const handleRemove = (id) => {
     dispatch(removeFromCart(id));
@@ -25,7 +39,15 @@ export default function CartDetail() {
   };
 
   const handleCheckout = () => {
-    setCheckoutMessage("Items bought successfully!");
+    const checkoutDetail = {
+      userInfo,
+      bankInfo,
+      items: cartItems,
+      totalPrice: totalPrice.toFixed(2),
+    };
+    localStorage.setItem("checkoutDetail", JSON.stringify(checkoutDetail));
+    dispatch(checkout());
+    alert("Items bought successfully!!!");
     setIsModalOpen(false);
   };
 
@@ -35,7 +57,9 @@ export default function CartDetail() {
 
   return (
     <div className="mt-5">
-      <h1 className="text-5xl font-bold tracking-wider text-orange-400 text-center">CART TABLE</h1>
+      <h1 className="text-5xl font-bold tracking-wider text-orange-400 text-center">
+        CART TABLE
+      </h1>
 
       {cartItems.length > 0 ? (
         <div className="overflow-x-auto w-full flex justify-center mt-5">
@@ -55,10 +79,16 @@ export default function CartDetail() {
                 <tr key={index} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="flex justify-center">
-                      <img src={item.image} alt={item.title} className="w-16 h-20 object-fit" />
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-16 h-20 object-fit"
+                      />
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center tracking-wider">{item.title}</td>
+                  <td className="px-4 py-3 text-center tracking-wider">
+                    {item.title}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center space-x-2">
                       <button
@@ -76,7 +106,9 @@ export default function CartDetail() {
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center font-semibold">${item.unitPrice}</td>
+                  <td className="px-4 py-3 text-center font-semibold">
+                    ${item.unitPrice}
+                  </td>
                   <td className="text-center">
                     <button
                       onClick={() => handleRemove(item.id)}
@@ -98,9 +130,12 @@ export default function CartDetail() {
 
       {cartItems.length > 0 && (
         <div className="w-full h-full flex justify-center mt-10">
-          <div className="w-[60%] flex justify-between items-center bg-orange-400 px-10 py-6 rounded-md">
+          <div className="w-[70%] flex justify-between items-center bg-orange-400 px-10 py-6 rounded-md">
             <span className="text-xl font-bold flex gap-5">
-              Total Price: <span className="text-xl text-white">${totalPrice.toFixed(2)}</span>
+              Total Price:{" "}
+              <span className="text-xl text-white">
+                ${totalPrice.toFixed(2)}
+              </span>
             </span>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -112,57 +147,84 @@ export default function CartDetail() {
         </div>
       )}
 
+      {/* Checkout Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] md:w-[70%] transition duration-500 ease-in-out transform">
-            <h2 className="text-4xl font-bold text-center mb-5 text-orange-400">Checkout</h2>
+            <h2 className="text-4xl font-bold text-center mb-5 text-orange-400">
+              Checkout
+            </h2>
 
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="bg-orange-400 text-white text-center rounded-lg">
-                  <th className="p-4">Product</th>
-                  <th className="p-4">Quantity</th>
-                  <th className="p-4">Price</th>
-                  <th className="p-4">Remove</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item, index) => (
-                  <tr key={index} className="bg-white border-b">
-                    <td className="p-4">{item.title}</td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button
-                          onClick={() => handleDecrement(item.id, item.quantity)}
-                          className="bg-gray-100 px-2 py-1 rounded-lg hover:scale-95"
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          onClick={() => handleIncrement(item.id, item.quantity)}
-                          className="bg-gray-100 px-2 py-1 rounded-lg hover:scale-95"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td className="p-4 text-center">${item.unitPrice}</td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => handleRemove(item.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-2 font-bold">Name</label>
+                <input
+                  type="text"
+                  value={userInfo.name}
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, name: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your name"
+                />
+              </div>
+              <div>
+                <label className="block mb-2 font-bold">Email</label>
+                <input
+                  type="email"
+                  value={userInfo.email}
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, email: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div>
+                <label className="block mb-2 font-bold">Bank Name</label>
+                <input
+                  type="text"
+                  value={bankInfo.bankName}
+                  onChange={(e) =>
+                    setBankInfo({ ...bankInfo, bankName: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your bank name"
+                />
+              </div>
+              <div>
+                <label className="block mb-2 font-bold">Account Number</label>
+                <input
+                  type="text"
+                  value={bankInfo.accountNumber}
+                  onChange={(e) =>
+                    setBankInfo({
+                      ...bankInfo,
+                      accountNumber: e.target.value,
+                    })
+                  }
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your account number"
+                />
+              </div>
+              <div>
+                <label className="block mb-2 font-bold">IFSC Code</label>
+                <input
+                  type="text"
+                  value={bankInfo.ifscCode}
+                  onChange={(e) =>
+                    setBankInfo({ ...bankInfo, ifscCode: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your IFSC code"
+                />
+              </div>
+            </div>
 
             <div className="mt-5 flex justify-between items-center">
-              <span className="font-bold text-xl">Total: ${totalPrice.toFixed(2)}</span>
+              <span className="font-bold text-xl">
+                Total: ${totalPrice.toFixed(2)}
+              </span>
               <div className="space-x-3">
                 <button
                   onClick={handleCheckout}
@@ -179,12 +241,6 @@ export default function CartDetail() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {checkoutMessage && (
-        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-5 rounded-lg">
-          {checkoutMessage}
         </div>
       )}
     </div>
