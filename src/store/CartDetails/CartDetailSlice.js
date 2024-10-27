@@ -7,6 +7,7 @@ const CartItemsSlice = createSlice({
     total: 0,
     loading: false,
     error: "",
+    isCheckoutSuccess: false, // To track the status of checkout
   },
   reducers: {
     addToCart: (state, action) => {
@@ -25,10 +26,18 @@ const CartItemsSlice = createSlice({
       }
 
       localStorage.setItem("cartItems", JSON.stringify(state.items));
+      state.isCheckoutSuccess = false; // Reset checkout success
     },
     removeFromCart: (state, action) => {
       state.items = state.items.filter((i) => i.id !== action.payload);
       localStorage.setItem("cartItems", JSON.stringify(state.items));
+    },
+    updateItemQuantity: (state, action) => {
+      const item = state.items.find((i) => i.id === action.payload.id);
+      if (item) {
+        item.quantity = action.payload.quantity;
+        localStorage.setItem("cartItems", JSON.stringify(state.items));
+      }
     },
     calculateTotal: (state) => {
       state.total = state.items.reduce(
@@ -41,10 +50,24 @@ const CartItemsSlice = createSlice({
       state.total = 0;
       localStorage.removeItem("cartItems");
     },
+    checkout: (state) => {
+      if (state.items.length > 0) {
+        state.isCheckoutSuccess = true;
+        state.items = []; // Clear cart after successful checkout
+        state.total = 0;
+        localStorage.removeItem("cartItems");
+      }
+    },
   },
 });
 
-export const { addToCart, removeFromCart, calculateTotal, clearCart } =
-  CartItemsSlice.actions;
+export const {
+  addToCart,
+  removeFromCart,
+  updateItemQuantity,
+  calculateTotal,
+  clearCart,
+  checkout,
+} = CartItemsSlice.actions;
 
 export default CartItemsSlice.reducer;

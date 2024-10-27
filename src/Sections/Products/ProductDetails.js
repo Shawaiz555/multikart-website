@@ -15,9 +15,7 @@ export default function ProductDetails() {
   const Products = useSelector((state) => state.products.items);
 
   const { id } = useParams();
-  console.log(id);
   const prodIndex = Products.findIndex((product) => product.id === Number(id));
-  console.log(prodIndex);
 
   useEffect(() => {
     dispatch(fetchAllProducts());
@@ -149,7 +147,7 @@ export default function ProductDetails() {
                 </div>
               </div>
 
-              <div className="flex gap-6 mt-4">
+              <div className="flex gap-6 mt-6">
                 <button
                   onClick={handleAddToCart}
                   className="bg-orange-400 font-semibold text-sm text-white px-7 py-2 rounded-xl hover:bg-orange-500 hover:scale-95"
